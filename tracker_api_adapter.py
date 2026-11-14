@@ -3,8 +3,12 @@ import datetime
 import requests
 import time
 
+
+
 base = "https://tt.horner.tj"
 request_timeout = 10
+
+
 
 @dataclass
 class stop_data:
@@ -13,6 +17,17 @@ class stop_data:
     name : str
     lat : float
     lon : float
+
+
+
+@dataclass 
+class stoproute_data:
+    routeId : str
+    name : str
+    color : str # hex
+    headsigns : list[str]
+
+
 
 @dataclass
 class trip_data:
@@ -34,18 +49,14 @@ class trip_data:
     vehicle : int
     isRealTime : bool
 
-@dataclass 
-class stoproute_data:
-    routeId : str
-    name : str
-    color : str # hex
-    headsigns : list[str]
 
 
 def get_response(request):
     response = requests.get(base + request, timeout=request_timeout)
     response.raise_for_status()
     return response.json()
+
+
 
 def get_stops_in_bbox(bbox : str) -> list[stop_data]:
     stops_responses = get_response(f"/stops/within/{bbox}")
@@ -62,6 +73,8 @@ def get_stops_in_bbox(bbox : str) -> list[stop_data]:
 
     return stops
 
+
+
 def get_routes_serving_stop(stop_id : str) -> list[stoproute_data]:
     routes_responses = get_response(f"/stops/{stop_id}/routes")
     
@@ -75,6 +88,8 @@ def get_routes_serving_stop(stop_id : str) -> list[stoproute_data]:
         ))
 
     return routes
+
+
 
 def get_schedule(route_stop_pairs : str) -> list[trip_data]:
     schedule_responses = get_response(f"/schedule/{route_stop_pairs}")
@@ -97,4 +112,27 @@ def get_schedule(route_stop_pairs : str) -> list[trip_data]:
         ))
 
 
-#print(get_stops_in_bbox("-72.524341,42.387466,-72.522960,42.388068"))
+
+def main():
+    """Sample usage"""
+    
+    bbox_studio_arts = "-72.524341,42.387466,-72.522960,42.388068"
+    stop_datas = get_stops_in_bbox(bbox_studio_arts)
+    for i, stop in enumerate(stop_datas):
+        print(f"\n######\nSTOP {i}\n")
+        print(stop)
+
+    route_datas = ()
+    for stop in stop_datas:
+        route_datas = route_datas | set(get_routes_serving_stop(stop.stopId))
+    for i, route in enumerate(route_datas):
+        print(f"\n######\nROUTE {i}\n")
+        print(stop)
+
+print(get_stops_in_bbox("-72.524341,42.387466,-72.522960,42.388068"))
+print(get_routes_serving_stop("pvta:71"))
+print(get_schedule(""))
+
+
+if __name__ == "__main__":
+    main()
