@@ -89,46 +89,43 @@ def screen_onebyone(matrix):
     fontsmall.LoadFont(f"fonts/tahoma-9.bdf")
 
     total_switches = 0
-    while True:
-        line = lines[total_switches % 3]
-        eta_str = tracker_api_adapter.convert_duration_to_eta(line.arrivalTime - now)
-
-        ticks_per_screen = 2000
-        i = ticks_per_screen
-
-        scroll_increment = .08
-        x_pos = int(canvas.width * .6)
-        x_pos2 = canvas.width
-
-        while i > 0:
-            canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
-
-            graphics.DrawText(canvas, fontmain, 1, 15, COLOR_WHITE, line.routeName)
-            graphics.DrawText(canvas, fontmedium, 40, 15, COLOR_WHITE, eta_str)
-
-            x_pos -= scroll_increment
-            len = graphics.DrawText(canvas, fontsmall, x_pos, 26, COLOR_WHITE, line.headsign)
-            if x_pos + len < canvas.width / 1.7:
-                graphics.DrawText(canvas, fontsmall, x_pos2, 26, COLOR_WHITE, line.headsign)
-                x_pos2 -= scroll_increment
-            elif x_pos + len < 0:
-                x_pos = canvas.width
-                x_pos2 = canvas.width
-
-            bar_width = int(canvas.width * (float(i) / ticks_per_screen))
-            graphics.DrawLine(canvas, 0, canvas.height-2, bar_width, canvas.height-2, COLOR_WHITE)
-            graphics.DrawLine(canvas, 0, canvas.height-1, bar_width, canvas.height-1, COLOR_WHITE)
-
-            # when the canvas is ready to be shown
-            canvas = matrix.SwapOnVSync(canvas)
-
-            i -= 1
-        total_switches += 1
-
     try:
-        print("Press CTRL-C to stop.")
+        print("loop starting, ctrl+c to stop...")
         while True:
-            time.sleep(100)
+            line = lines[total_switches % 3]
+            eta_str = tracker_api_adapter.convert_duration_to_eta(line.arrivalTime - now)
+
+            ticks_per_screen = 2000
+            i = ticks_per_screen
+
+            scroll_increment = .08
+            x_pos = int(canvas.width * .6)
+            x_pos2 = canvas.width
+
+            while i > 0:
+                canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
+
+                graphics.DrawText(canvas, fontmain, 1, 15, COLOR_WHITE, line.routeName)
+                graphics.DrawText(canvas, fontmedium, 40, 15, COLOR_WHITE, eta_str)
+
+                x_pos -= scroll_increment
+                len = graphics.DrawText(canvas, fontsmall, x_pos, 26, COLOR_WHITE, line.headsign)
+                if x_pos + len < canvas.width / 1.7:
+                    graphics.DrawText(canvas, fontsmall, x_pos2, 26, COLOR_WHITE, line.headsign)
+                    x_pos2 -= scroll_increment
+                elif x_pos + len < 0:
+                    x_pos = canvas.width
+                    x_pos2 = canvas.width
+
+                bar_width = int(canvas.width * (float(i) / ticks_per_screen))
+                #graphics.DrawLine(canvas, 0, canvas.height-2, bar_width, canvas.height-2, COLOR_WHITE)
+                graphics.DrawLine(canvas, 0, canvas.height-1, bar_width, canvas.height-1, COLOR_WHITE)
+
+                # when the canvas is ready to be shown
+                canvas = matrix.SwapOnVSync(canvas)
+
+                i -= 1
+            total_switches += 1
     except KeyboardInterrupt:
         sys.exit(0)
 
