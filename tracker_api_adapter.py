@@ -132,7 +132,20 @@ def get_next_trips_from_bbox(bbox : str, count : int = 3) -> list[trip_data]:
 
     # get upcoming trips with these pairs
     return sorted(get_schedule(schedule_str), key=lambda s: s.arrivalTime)[:count]
-    
+
+
+
+def convert_duration_to_eta(delta_seconds : int) -> str:
+    hours, r = divmod(delta_seconds, 3600)
+    minutes, r = divmod(delta_seconds, 60)
+
+    out_str = ""
+    if hours > 0:
+        out_str += f"{int(hours)}h "
+    out_str += f"{int(minutes)}m"
+
+    return out_str
+
 
 
 def main():
