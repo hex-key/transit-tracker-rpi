@@ -74,7 +74,7 @@ def main():
 
     global font
     font = graphics.Font()
-    font.LoadFont(f"rpi-rgb-led-matrix/fonts/{args.font}.bdf")
+    font.LoadFont(f"fonts/{args.font}.bdf")
 
     # setup rgbmatrix
     matrix = setup_matrix()
