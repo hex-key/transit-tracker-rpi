@@ -7,7 +7,7 @@ import tracker
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 
-font : any
+global font
 
 def color(value):
     try:
@@ -47,8 +47,8 @@ def screen_3upsimple(matrix):
 
     # do something with the data
     for i, line in enumerate(lines):
-        graphics.DrawText(canvas, FONT_6_9, 1, 7 + 10*i, COLOR_WHITE, line[0])
-        graphics.DrawText(canvas, FONT_6_9, 18, 7 + 10*i, COLOR_WHITE, line[1])
+        graphics.DrawText(canvas, font, 1, 7 + 10*i, COLOR_WHITE, line[0])
+        graphics.DrawText(canvas, font, 18, 7 + 10*i, COLOR_WHITE, line[1])
 
     # when the canvas is ready to be shown
     canvas = matrix.SwapOnVSync(canvas)
@@ -72,6 +72,7 @@ def main():
     parser.add_argument("-f", "--font", type=str, default='6x9')
     args = parser.parse_args()
 
+    global font
     font = graphics.Font()
     font.LoadFont(f"rpi-rgb-led-matrix/fonts/{args.font}.bdf")
 

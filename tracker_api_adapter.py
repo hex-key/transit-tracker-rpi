@@ -115,7 +115,7 @@ def get_schedule(route_stop_pairs : str) -> list[trip_data]:
 
 
 
-def get_next_trips_from_bbx(bbox : str, count : int = 3) -> list[trip_data]:
+def get_next_trips_from_bbox(bbox : str, count : int = 3) -> list[trip_data]:
     # get stops in bbox
     stop_datas = get_stops_in_bbox(bbox)
 
