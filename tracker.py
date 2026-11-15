@@ -6,8 +6,9 @@ base = "https://tt.horner.tj"
 
 BBOX_HAIGIS_MALL = "-72.527109,42.386394,-72.525301,42.387728"
 BBOX_STUDIO_ARTS = "-72.524341,42.387466,-72.522960,42.388068"
+BBOX_PRES = "-72.529501,42.403016,-72.528851,42.403332"
 
-bounding_box = BBOX_STUDIO_ARTS
+bounding_box = BBOX_PRES
 request_timeout = 10
 
 def get_response(request):

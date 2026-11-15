@@ -92,7 +92,7 @@ def get_routes_serving_stop(stop_id : str) -> list[stoproute_data]:
 
 
 def get_schedule(route_stop_pairs : str) -> list[trip_data]:
-    schedule_responses = get_response(f"/schedule/{route_stop_pairs}")
+    schedule_responses = get_response(f"/schedule/{route_stop_pairs}")["trips"]
 
     schedules = []
     for schedule_response in schedule_responses:
@@ -108,9 +108,32 @@ def get_schedule(route_stop_pairs : str) -> list[trip_data]:
             schedule_response['arrivalTime'],
             schedule_response['departureTime'],
             schedule_response['vehicle'],
-            schedule_response['isRealTime'],
+            schedule_response['isRealtime'],
         ))
 
+    return schedules
+
+
+
+def get_next_trips_from_bbx(bbox : str, count : int = 3) -> list[trip_data]:
+    # get stops in bbox
+    stop_datas = get_stops_in_bbox(bbox)
+
+    schedule_str = ""
+    for stop in stop_datas:
+        # get each route at these stops
+        routes = get_routes_serving_stop(stop.stopId)
+
+        # build route,stop pairs
+        if schedule_str: schedule_str += ";"
+        schedule_str += ";".join(
+            f"{route.routeId},{stop.stopId}" for route in routes
+        )
+
+    # get upcoming trips with these pairs
+    trip_datas = sorted(get_schedule(schedule_str), key=lambda s: s.arrivalTime)[count:]
+
+        
 
 
 def main():
@@ -119,19 +142,36 @@ def main():
     bbox_studio_arts = "-72.524341,42.387466,-72.522960,42.388068"
     stop_datas = get_stops_in_bbox(bbox_studio_arts)
     for i, stop in enumerate(stop_datas):
-        print(f"\n######\nSTOP {i}\n")
+        print(f"\n######\nSTOP {i}")
         print(stop)
 
-    route_datas = ()
+    schedule_str = ""
     for stop in stop_datas:
-        route_datas = route_datas | set(get_routes_serving_stop(stop.stopId))
-    for i, route in enumerate(route_datas):
-        print(f"\n######\nROUTE {i}\n")
-        print(stop)
+        routes = get_routes_serving_stop(stop.stopId)
+        
+        print(f"\n######\nROUTES SERVING STOP {stop.stopId} {stop.name}\n")
+        for route in routes:
+            print(f"\n### ROUTE {route.name} AT {stop.name}")
+            print(route)
 
-print(get_stops_in_bbox("-72.524341,42.387466,-72.522960,42.388068"))
-print(get_routes_serving_stop("pvta:71"))
-print(get_schedule(""))
+        if schedule_str: schedule_str += ";"
+        schedule_str += ";".join(
+            f"{route.routeId},{stop.stopId}" for route in routes
+        )
+
+    trip_datas = sorted(get_schedule(schedule_str), key=lambda s: s.arrivalTime)
+    print("\n###### UPCOMING TRIPS AT THESE STOPS")
+    for trip in trip_datas:
+        print(f"\nROUTE {trip.routeId} TO {trip.headsign}")
+        print(trip)
+    
+
+    
+        
+
+    
+
+    
 
 
 if __name__ == "__main__":

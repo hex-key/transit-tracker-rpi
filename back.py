@@ -7,9 +7,7 @@ import tracker
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 
-FONT_6_9 = graphics.Font()
-FONT_6_9.LoadFont("rpi-rgb-led-matrix/fonts/6x9.bdf")
-
+font : any
 
 def color(value):
     try:
@@ -71,7 +69,11 @@ def main():
     # arg parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("screen")
+    parser.add_argument("-f", "--font", type=str, default='6x9')
     args = parser.parse_args()
+
+    font = graphics.Font()
+    font.LoadFont(f"rpi-rgb-led-matrix/fonts/{args.font}.bdf")
 
     # setup rgbmatrix
     matrix = setup_matrix()
