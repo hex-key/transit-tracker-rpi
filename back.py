@@ -7,9 +7,17 @@ import tracker_api_adapter
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 
-global font
+BBOXES = {
+    "springfieldunion" : "-72.596326,42.105475,-72.593473,42.107178",
+    "studioarts" : "-72.524341,42.387466,-72.522960,42.388068",
+    "haigismall" : "-72.527109,42.386394,-72.525301,42.387728",
+    "pres" : "-72.529501,42.403016,-72.528851,42.403332"
+}
 
-def color(value):
+
+def color(value, hex=False):
+    if hex:
+        value = ",".join(str(int(value[i:i+2], 16)) for i in range(3))
     try:
         return graphics.Color(*[int(v) for v in value.split(",")])
     except:
@@ -43,12 +51,15 @@ def screen_3upsimple(matrix):
     canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
     # get api data by calling our tracker api wrapper
-    BBOX_STUDIO_ARTS = "-72.524341,42.387466,-72.522960,42.388068"
-    lines = tracker_api_adapter.get_next_trips_from_bbox(BBOX_STUDIO_ARTS, 3)
+    bbox = BBOXES["haigismall"]
+    lines = tracker_api_adapter.get_next_trips_from_bbox(bbox, 3)
+
+    font = graphics.Font()
+    font.LoadFont("fonts/tahoma-10.bdf")
 
     # do something with the data
     for i, line in enumerate(lines):
-        graphics.DrawText(canvas, font, 1, 7 + 10*i, COLOR_WHITE, line.routeName)
+        graphics.DrawText(canvas, font, 1, 7 + 10*i, color(line.routeColor, hex=True), line.routeName)
         graphics.DrawText(canvas, font, 18, 7 + 10*i, COLOR_WHITE, line.headsign)
 
     # when the canvas is ready to be shown
@@ -73,10 +84,12 @@ def screen_onebyone(matrix):
     canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
     # get api data by calling our tracker api wrapper
-    BBOX_STUDIO_ARTS = "-72.524341,42.387466,-72.522960,42.388068"
+    bbox = BBOXES["studioarts"]
+
+    num_trips = 10
 
     now = time.time()
-    lines = tracker_api_adapter.get_next_trips_from_bbox(BBOX_STUDIO_ARTS, 3)
+    lines = tracker_api_adapter.get_next_trips_from_bbox(bbox, num_trips)
 
     # do something with the data
     fontmain = graphics.Font()
@@ -92,8 +105,8 @@ def screen_onebyone(matrix):
     try:
         print("loop starting, ctrl+c to stop...")
         while True:
-            line = lines[total_switches % 3]
-            eta_str = tracker_api_adapter.convert_duration_to_eta(line.arrivalTime - now)
+            line = lines[total_switches % min(len(lines), num_trips)]
+            hrs, mins = tracker_api_adapter.convert_duration_to_eta_2(line.arrivalTime - now)
 
             ticks_per_screen = 2000
             i = ticks_per_screen
@@ -105,20 +118,28 @@ def screen_onebyone(matrix):
             while i > 0:
                 canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
-                graphics.DrawText(canvas, fontmain, 1, 15, COLOR_WHITE, line.routeName)
-                graphics.DrawText(canvas, fontmedium, 40, 15, COLOR_WHITE, eta_str)
+                graphics.DrawText(canvas, fontmain, 3, 14, color(line.routeColor, hex=True), line.routeName)
+
+                eta_m_len = graphics.MeasureText(fontsmall, 'm')
+                eta_mins_len = graphics.MeasureText(fontmedium, mins) + eta_m_len
+                graphics.DrawText(canvas, fontsmall, canvas.width - eta_m_len - 3, 14, COLOR_WHITE, 'm')
+                graphics.DrawText(canvas, fontmedium, canvas.width - eta_mins_len - 3, 14, COLOR_WHITE, mins)
+                if hrs != "0":
+                    eta_h_len = graphics.MeasureText(fontsmall, 'h') + eta_mins_len + 2
+                    eta_hrs_len = graphics.MeasureText(fontmedium, hrs) + eta_h_len
+                    graphics.DrawText(canvas, fontsmall, canvas.width - eta_h_len - 3, 14, COLOR_WHITE, 'h')
+                    graphics.DrawText(canvas, fontmedium, canvas.width - eta_hrs_len - 3, 14, COLOR_WHITE, hrs)
 
                 x_pos -= scroll_increment
-                len = graphics.DrawText(canvas, fontsmall, x_pos, 26, COLOR_WHITE, line.headsign)
-                if x_pos + len < canvas.width / 1.7:
+                scroll_len = graphics.DrawText(canvas, fontsmall, x_pos, 26, COLOR_WHITE, line.headsign)
+                if x_pos + scroll_len < canvas.width / 1.7:
                     graphics.DrawText(canvas, fontsmall, x_pos2, 26, COLOR_WHITE, line.headsign)
                     x_pos2 -= scroll_increment
-                elif x_pos + len < 0:
+                elif x_pos + scroll_len < 0:
                     x_pos = canvas.width
                     x_pos2 = canvas.width
 
                 bar_width = int(canvas.width * (float(i) / ticks_per_screen))
-                #graphics.DrawLine(canvas, 0, canvas.height-2, bar_width, canvas.height-2, COLOR_WHITE)
                 graphics.DrawLine(canvas, 0, canvas.height-1, bar_width, canvas.height-1, COLOR_WHITE)
 
                 # when the canvas is ready to be shown
