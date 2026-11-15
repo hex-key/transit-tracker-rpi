@@ -2,7 +2,7 @@ import time
 import sys
 import argparse
 
-import tracker
+import tracker_api_adapter
 
 from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
@@ -43,12 +43,13 @@ def screen_3upsimple(matrix):
     canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
     # get api data by calling our tracker api wrapper
-    lines = tracker.get_board_lines()
+    BBOX_STUDIO_ARTS = "-72.524341,42.387466,-72.522960,42.388068"
+    lines = tracker_api_adapter.get_next_trips_from_bbox(BBOX_STUDIO_ARTS, 3)
 
     # do something with the data
     for i, line in enumerate(lines):
-        graphics.DrawText(canvas, font, 1, 7 + 10*i, COLOR_WHITE, line[0])
-        graphics.DrawText(canvas, font, 18, 7 + 10*i, COLOR_WHITE, line[1])
+        graphics.DrawText(canvas, font, 1, 7 + 10*i, COLOR_WHITE, line.routeName)
+        graphics.DrawText(canvas, font, 18, 7 + 10*i, COLOR_WHITE, line.headsign)
 
     # when the canvas is ready to be shown
     canvas = matrix.SwapOnVSync(canvas)
@@ -59,7 +60,6 @@ def screen_3upsimple(matrix):
             time.sleep(100)
     except KeyboardInterrupt:
         sys.exit(0)
-
 
 
 

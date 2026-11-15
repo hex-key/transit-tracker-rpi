@@ -131,9 +131,8 @@ def get_next_trips_from_bbox(bbox : str, count : int = 3) -> list[trip_data]:
         )
 
     # get upcoming trips with these pairs
-    trip_datas = sorted(get_schedule(schedule_str), key=lambda s: s.arrivalTime)[count:]
-
-        
+    return sorted(get_schedule(schedule_str), key=lambda s: s.arrivalTime)[:count]
+    
 
 
 def main():
