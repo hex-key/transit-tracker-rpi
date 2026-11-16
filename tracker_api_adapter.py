@@ -156,6 +156,19 @@ def convert_duration_to_eta_2(delta_seconds : int) -> str:
 
 
 
+def convert_duration_to_eta_3(delta_seconds : int) -> str:
+    hours, r = divmod(delta_seconds, 3600)
+    minutes, r = divmod(delta_seconds, 60)
+
+    out_str = ""
+    if hours > 0:
+        out_str += f"{int(hours)}:"
+    out_str += f"{int(minutes)}"
+
+    return out_str
+
+
+
 def main():
     """Sample usage"""
     

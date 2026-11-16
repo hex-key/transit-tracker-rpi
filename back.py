@@ -11,7 +11,8 @@ BBOXES = {
     "springfieldunion" : "-72.596326,42.105475,-72.593473,42.107178",
     "studioarts" : "-72.524341,42.387466,-72.522960,42.388068",
     "haigismall" : "-72.527109,42.386394,-72.525301,42.387728",
-    "pres" : "-72.529501,42.403016,-72.528851,42.403332"
+    "pres" : "-72.529501,42.403016,-72.528851,42.403332",
+    "cowleslane" : "-72.520264,42.377611,-72.519439,42.378079"
 }
 
 
@@ -42,7 +43,7 @@ def setup_matrix():
     return RGBMatrix(options = options)
 
 
-def screen_3upsimple(matrix):
+def screen_3upsimple(matrix, bbox_name):
 
     # canvas: the thing you draw on
     canvas = matrix.CreateFrameCanvas()
@@ -51,7 +52,7 @@ def screen_3upsimple(matrix):
     canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
     # get api data by calling our tracker api wrapper
-    bbox = BBOXES["haigismall"]
+    bbox = BBOXES[bbox_name]
     lines = tracker_api_adapter.get_next_trips_from_bbox(bbox, 3)
 
     font = graphics.Font()
@@ -74,8 +75,52 @@ def screen_3upsimple(matrix):
 
 
 
+def screen_3up(matrix, bbox_name):
+    # canvas: the thing you draw on
+    canvas = matrix.CreateFrameCanvas()
 
-def screen_onebyone(matrix):
+    # colors made by calling color("r,g,b")
+    canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
+
+    # get api data by calling our tracker api wrapper
+    bbox = BBOXES[bbox_name]
+
+    num_trips = 3
+
+    font = graphics.Font()
+    font.LoadFont("fonts/tahoma-10.bdf")
+
+    try:
+        print("loop starting, ctrl+c to stop...")
+
+        ticks_per_screen = 1600
+        i = 0
+        page = 0
+        while True:
+            if i == 0:
+                i = ticks_per_screen
+                page += 1
+                now = time.time()
+                lines = tracker_api_adapter.get_next_trips_from_bbox(bbox, num_trips)
+            for row, line in enumerate(lines):
+                if page % 2 == 1:
+                    graphics.DrawText(canvas, font, 1, 8*row, color(line.routeColor, hex=True), line.routeName)
+                else:                    
+                    graphics.DrawText(canvas, font, 1, 8*row, color(line.routeColor, hex=True), line.headsign)
+                
+                eta_str = tracker_api_adapter.convert_duration_to_eta_3(line.arrivalTime - now)
+                eta_str_len = graphics.MeasureText(font, eta_str)
+                graphics.DrawText(canvas, font, canvas.width - eta_str_len - 1, 8 + 10*i, COLOR_WHITE, eta_str)
+            canvas = matrix.SwapOnVSync(canvas)
+            i -= 1
+
+    except KeyboardInterrupt:
+        sys.exit(0)
+
+
+
+
+def screen_onebyone(matrix, bbox_name):
 
     # canvas: the thing you draw on
     canvas = matrix.CreateFrameCanvas()
@@ -84,9 +129,9 @@ def screen_onebyone(matrix):
     canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
     # get api data by calling our tracker api wrapper
-    bbox = BBOXES["studioarts"]
+    bbox = BBOXES[bbox_name]
 
-    num_trips = 10
+    num_trips = 5
 
     now = time.time()
     lines = tracker_api_adapter.get_next_trips_from_bbox(bbox, num_trips)
@@ -152,26 +197,25 @@ def screen_onebyone(matrix):
 
 
 
+
 def main():
 
     # arg parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("screen")
-    parser.add_argument("-f", "--font", type=str, default='6x9')
+    parser.add_argument("bbox_name")
     args = parser.parse_args()
-
-    global font
-    font = graphics.Font()
-    font.LoadFont(f"fonts/{args.font}.bdf")
 
     # setup rgbmatrix
     matrix = setup_matrix()
     
     # choose screen to show
+    if args.screen == "3ups":
+        screen_3upsimple(matrix, args.bbox_name)
     if args.screen == "3up":
-        screen_3upsimple(matrix)
+        screen_3up(matrix, args.bbox_name)
     elif args.screen == "1x1":
-        screen_onebyone(matrix)
+        screen_onebyone(matrix, args.bbox_name)
 
 
 if __name__ == "__main__":
