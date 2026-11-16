@@ -9,6 +9,14 @@ from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 global font
 
+BBOXES = {
+    "springfieldunion" : "-72.596326,42.105475,-72.593473,42.107178",
+    "studioarts" : "-72.524341,42.387466,-72.522960,42.388068",
+    "haigismall" : "-72.527109,42.386394,-72.525301,42.387728",
+    "pres" : "-72.529501,42.403016,-72.528851,42.403332",
+    "cowleslane" : "-72.520264,42.377611,-72.519439,42.378079"
+}
+
 def color(value):
     try:
         return graphics.Color(*[int(v) for v in value.split(",")])
@@ -38,7 +46,7 @@ def setup_matrix():
     return RGBMatrix(options = options)
 
 
-def screen_3upsimple(matrix):
+def screen_3upsimple(matrix, bbox_name):
 
     # canvas: the thing you draw on
     canvas = matrix.CreateFrameCanvas()
@@ -47,12 +55,15 @@ def screen_3upsimple(matrix):
     canvas.Fill(COLOR_BLACK.red, COLOR_BLACK.green, COLOR_BLACK.blue)
 
     # get api data by calling our tracker api wrapper
-    BBOX_STUDIO_ARTS = "-72.524341,42.387466,-72.522960,42.388068"
-    lines = tracker_api_adapter.get_next_trips_from_bbox(BBOX_STUDIO_ARTS, 3) 
+    bbox = BBOXES[bbox_name]
+    lines = tracker_api_adapter.get_next_trips_from_bbox(bbox, 3)
+
+    font = graphics.Font()
+    font.LoadFont("fonts/tahoma-10.bdf")
 
     # do something with the data
     for i, line in enumerate(lines):
-        graphics.DrawText(canvas, font, 1, 7 + 10*i, color(hex2rgb(line.routeColor)), line.routeName)
+        graphics.DrawText(canvas, font, 1, 7 + 10*i, color(line.routeColor, hex=True), line.routeName)
         graphics.DrawText(canvas, font, 18, 7 + 10*i, COLOR_WHITE, line.headsign)
 
     # when the canvas is ready to be shown
